@@ -3,7 +3,8 @@ import redis
 # Connect to local Redis
 r = redis.Redis(host="localhost", port=6379, db=0)
 
-
+#my changes
+print("change")
 
 def get_cache(key):
     try:
