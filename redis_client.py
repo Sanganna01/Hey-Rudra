@@ -3,8 +3,8 @@ import redis
 # Connect to local Redis
 r = redis.Redis(host="localhost", port=6379, db=0)
 
-#debug statement
-print("this is debug statement")
+#new testing print statement
+print("test statement")
 
 def get_cache(key):
     try:
