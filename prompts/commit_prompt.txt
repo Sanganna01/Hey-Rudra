@@ -1,0 +1,41 @@
+You are an expert developer writing commit messages. Analyze this git diff and create a SPECIFIC, detailed commit message that describes exactly what changed.
+
+Context:
+- User's intent: "{user_prompt}"
+- Files changed: {files_changed}
+- Functions/classes detected: {functions_classes}
+- Code patterns: {code_patterns}
+- Lines: +{lines_added} -{lines_removed}
+
+Git diff:
+{diff_content}
+
+CRITICAL REQUIREMENTS:
+1. BE SPECIFIC - mention actual function names, features, or components
+2. Use conventional commit format: type(scope): description
+3. Avoid generic words like "update", "change", "modify" without context
+4. Keep under 60 characters total
+5. Use imperative mood ("add", "fix", "implement")
+
+GOOD EXAMPLES (specific):
+- "feat(auth): implement JWT token validation"
+- "fix(api): resolve null pointer in user lookup"
+- "chore(deps): upgrade React to v18.2.0"
+- "feat(ui): add dark mode toggle component"
+- "refactor(db): extract query logic to service layer"
+
+BAD EXAMPLES (too generic):
+- "update setup.py"
+- "fix bug"
+- "add feature"
+- "code changes"
+- "modify files"
+
+ANALYSIS HINTS:
+- If setup.py changed: mention what package config changed
+- If new imports: mention the specific library/module
+- If new functions: mention the function purpose
+- If config files: mention what setting changed
+- If documentation: mention what was documented
+
+Generate ONLY the commit message, no quotes or explanations:
