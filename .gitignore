@@ -1,0 +1,6 @@
+.env
+.venv/
+cli_env/
+__pycache__/
+heyrudra.egg-info/
+.groq_key
