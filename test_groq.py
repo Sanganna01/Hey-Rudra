@@ -1,7 +1,8 @@
 import openai
 import os
 
-openai.api_key = os.environ.get("GROQ_API_KEY")
+from session_context import get_api_key
+openai.api_key = get_api_key()
 openai.api_base = "https://api.groq.com/openai/v1"
 
 print("testing groq key:", openai.api_key)
