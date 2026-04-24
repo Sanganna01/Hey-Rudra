@@ -18,23 +18,9 @@ def main():
     context = get_current_context()
     cwd = context['cwd']
 
-    print(f"🎯 Interpreting: '{prompt}'")
-    print(f"📁 Current folder: {cwd}")
+    print(f"Interpreting: '{prompt}'")
+    print(f"Current folder: {cwd}")
     print()
-
-    cached = get_cache(prompt)
-    if cached:
-        command = cached.decode()
-        print("⚡ Using cached command:")
-        print(f"   {command}")
-        print()
-        print("🚀 Executing cached command...")
-        
-        if os.name == 'nt':
-            subprocess.run(["powershell", "-NoProfile", "-Command", command], cwd=cwd)
-        else:
-            subprocess.run(command, shell=True, cwd=cwd)
-        return
 
     # Run the agent workflow
     state = run_agent_flow(prompt, context)
@@ -44,14 +30,14 @@ def main():
     print("=" * 50)
     
     if state.get("status") == "success":
-        print("🎉 EXECUTION SUCCESSFUL")
+        print("EXECUTION SUCCESSFUL")
         if state.get("stdout") and state.get("stdout").strip():
-            print("\n📤 Output:")
+            print("\nOutput:")
             print(state["stdout"].strip())
     elif state.get("status") == "partial_success":
         print("EXECUTION COMPLETED WITH WARNINGS")
         if state.get("stdout") and state.get("stdout").strip():
-            print("\n📤 Output:")
+            print("\nOutput:")
             print(state["stdout"].strip())
         if state.get("stderr") and state.get("stderr").strip():
             print("\n  Warnings:")
@@ -60,19 +46,19 @@ def main():
         print(" EXECUTION FAILED")
         if state.get("error"):
             print(f"\n Error: {state['error']}")
-        if state.get("stderr") and state.get("stderr").strip():
-            print(f"\nDetails: {state['stderr'].strip()}")
+        if state.get("stderr") and str(state.get("stderr", "")).strip():
+            print(f"\nDetails: {str(state.get('stderr', '')).strip()}")
     else:
-        print("❓ UNKNOWN STATUS")
-        if state.get("stdout") and state.get("stdout").strip():
-            print(f"\nOutput: {state['stdout'].strip()}")
-        if state.get("stderr") and state.get("stderr").strip():
-            print(f"\n  Errors: {state['stderr'].strip()}")
+        print("UNKNOWN STATUS")
+        if state.get("stdout") and str(state.get("stdout", "")).strip():
+            print(f"\nOutput: {str(state.get('stdout', '')).strip()}")
+        if state.get("stderr") and str(state.get("stderr", "")).strip():
+            print(f"\n  Errors: {str(state.get('stderr', '')).strip()}")
 
     # Cache successful commands
     if state.get("command") and state.get("status") in ["success", "partial_success"]:
         set_cache(prompt, state["command"])
-        print(f"\n💾 Command cached for future use")
+        print(f"\nCommand cached for future use")
 
     print("=" * 50)
 

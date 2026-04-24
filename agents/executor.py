@@ -163,7 +163,7 @@ def _execute_multiline_command(state, command, cwd):
         state["status"] = "success"
         print(f" All commands completed successfully!")
     else:
-        state["status"] = "partial_success" if any("✅" in line for line in all_stdout) else "error"
+        state["status"] = "partial_success" if any("completed successfully" in line.lower() for line in all_stdout) else "error"
         print(f"  Command sequence completed with some issues")
     
     return state

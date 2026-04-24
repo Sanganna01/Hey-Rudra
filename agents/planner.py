@@ -49,6 +49,10 @@ Command: "{prompt}"
 
 Task types: cd, git, file_ops, list, search, env, install, run, help, general
 
+CRITICAL: Any command involving 'delete', 'remove', 'rm', or 'drop' MUST be classified as:
+RISK_LEVEL: dangerous
+NEEDS_CONFIRMATION: yes
+
 Respond in this format:
 TASK_TYPE: [type]
 RISK_LEVEL: [safe/moderate/dangerous]
@@ -102,9 +106,9 @@ SPECIAL_HANDLING: [any special notes]
         if task_type == "cd":
             state["cd_context"] = _analyze_cd_context(cwd, prompt)
             
-        print(f"🧠 Planned task: {task_type} (risk: {risk_level})")
+        print(f"Planned task: {task_type} (risk: {risk_level})")
         if special_handling:
-            print(f"⚠️  Special handling: {special_handling}")
+            print(f"Special handling: {special_handling}")
             
     except Exception as e:
         print(f"Planning error: {e}")

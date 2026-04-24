@@ -22,10 +22,10 @@ def verifier_agent(state):
     state["safety_warnings"] = safety_result["warnings"]
     
     # Check if command should be blocked
-    if safety_result["score"] < 30:  # Very dangerous
+    if safety_result["score"] < 10:  # Only extremely dangerous commands (like rm -rf /)
         state["verification_error"] = f"Command blocked: {safety_result['reason']}"
         state["status"] = "blocked"
-        print(f"🚫 Command blocked: {safety_result['reason']}")
+        print(f"Command blocked: {safety_result['reason']}")
         return state
     
     # Check for syntax errors (where possible)
@@ -33,12 +33,12 @@ def verifier_agent(state):
     if not syntax_check["valid"]:
         state["verification_error"] = f"Syntax error: {syntax_check['error']}"
         state["status"] = "syntax_error"
-        print(f"❌ Syntax error: {syntax_check['error']}")
+        print(f"Syntax error: {syntax_check['error']}")
         return state
     
     # Warnings for moderate risk commands
     if safety_result["score"] < 70:
-        print(f"⚠️  Safety warnings: {', '.join(safety_result['warnings'])}")
+        print(f"Safety warnings: {', '.join(safety_result['warnings'])}")
         if not _confirm_risky_command(command, safety_result["warnings"]):
             state["verification_error"] = "Command execution cancelled by user"
             state["status"] = "cancelled"
@@ -47,7 +47,7 @@ def verifier_agent(state):
     # Command passed verification
     state["verification_passed"] = True
     state["status"] = "verified"
-    print(f"✅ Command verified (safety score: {safety_result['score']}/100)")
+    print(f"Command verified (safety score: {safety_result['score']}/100)")
     
     return state
 
@@ -100,7 +100,8 @@ def _check_command_safety(command, cwd):
     # Medium risk patterns
     medium_risk_patterns = [
         (r'\bsudo\b', "Running as root", 15),
-        (r'\brm\b', "File deletion", 10),
+        (r'\brm\b', "File deletion", 40),
+        (r'\bgit rm\b', "Git file removal", 40),
         (r'\bmv\b.*\s+/', "Moving to root", 20),
         (r'\bcp\b.*\s+/', "Copying to root", 15),
         (r'\bchmod\b', "Changing permissions", 10),
@@ -180,12 +181,15 @@ def _check_syntax(command):
 
 def _confirm_risky_command(command, warnings):
     """Ask user to confirm risky commands"""
-    print(f"\n⚠️  RISKY COMMAND DETECTED:")
-    print(f"Command: {command}")
-    print(f"Warnings: {', '.join(warnings)}")
+    if "rm" in command.lower() or "delete" in command.lower():
+        print(f"\n[WARNING]: This particular file is getting deleted from github and codebase.")
+    else:
+        print(f"\n⚠️  RISKY COMMAND DETECTED:")
+        print(f"Command: {command}")
+        print(f"Warnings: {', '.join(warnings)}")
     
     try:
-        response = input("\nDo you want to proceed? (yes/no): ").strip().lower()
+        response = input("\nAre you sure you want to proceed? (yes/no): ").strip().lower()
         return response in ['yes', 'y']
     except (EOFError, KeyboardInterrupt):
         return False

@@ -1,4 +1,0 @@
-Sync testUpdate for sync
-Final logic test
-Testing auto-push
-Testing auto-push with new prompt
