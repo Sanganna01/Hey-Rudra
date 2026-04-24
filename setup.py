@@ -9,12 +9,12 @@ with open("requirements.txt", "r", encoding="utf-16") as fh:
 setup(
     name="heyrudra",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Sanganna01",
+    author_email="Sanganna01@users.noreply.github.com",
     description="Natural language to shell command converter with AI agents",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/arnavjain91/MajorProject.git",
+    url="https://github.com/Sanganna01/Hey-Rudra.git",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
