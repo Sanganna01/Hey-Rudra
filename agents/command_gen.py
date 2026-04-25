@@ -19,7 +19,7 @@ Instruction: \"{prompt}\"
 
 Convert this to a Windows PowerShell command. Output ONLY the valid PowerShell command. Do NOT use Linux commands like 'ls', 'grep', 'head', 'cat', or 'awk'. Use native PowerShell cmdlets like Get-Process, Select-Object, Where-Object, etc.
 
-CRITICAL: If the user is asking to 'commit', 'push', or 'save' changes to git, ensure the command includes '; git push' at the end so it reflects on GitHub immediately.
+CRITICAL: If the user is asking to 'commit', 'push', or 'save' changes to git, ensure the command follows this exact sequence to prevent push rejections: 'git add .; git commit -m "message"; git pull --rebase origin main; git push'
 CRITICAL: If the user is asking to 'delete' or 'remove' a file, and it's a git repo, use 'git rm <file>; git commit -m "Delete <file>"; git push' to ensure it is removed from both codebase and GitHub.
 """
 

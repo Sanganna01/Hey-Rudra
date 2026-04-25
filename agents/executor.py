@@ -7,36 +7,102 @@ import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from session_context import set_cwd
 
+# History recording (best-effort — never crash executor if history fails)
+try:
+    from history.history_store import record_event
+    _HISTORY_ENABLED = True
+except Exception:
+    _HISTORY_ENABLED = False
+
+
+def _record(type_, command, cwd, label=None, filename=None,
+            content_before=None, content_after=None):
+    """Wrapper that silently ignores history errors."""
+    if not _HISTORY_ENABLED:
+        return
+    try:
+        record_event(
+            type_=type_,
+            command=command,
+            label=label or command[:60],
+            filename=filename,
+            content_before=content_before,
+            content_after=content_after,
+            cwd=cwd,
+        )
+    except Exception:
+        pass
+
+
+def _sniff_deleted_file(command: str, cwd: str):
+    """Try to detect the file being deleted and read its content before deletion."""
+    import re
+    m = re.search(r'git\s+rm\s+["\']?([\w./\\\-]+)["\']?', command, re.IGNORECASE)
+    if not m:
+        m = re.search(r'(?:Remove-Item|del|rm)\s+["\']?([\w./\\\-]+)["\']?',
+                      command, re.IGNORECASE)
+    if m:
+        fname = m.group(1).strip('.\\/').replace('\\', '/').split('/')[-1]
+        fpath = os.path.join(cwd, fname)
+        try:
+            with open(fpath, 'r', encoding='utf-8') as f:
+                return fname, f.read()
+        except Exception:
+            pass
+    return None, None
+
 def executor_agent(state):
     """
-    Safely execute shell commands and capture output
+    Safely execute shell commands and capture output.
+    Records git commits and file deletions in the history store.
     """
     command = state.get("command", "")
     cwd = state.get("cwd", os.getcwd())
     task_type = state.get("task_type", "general")
     risk_level = state.get("risk_level", "safe")
-    
+
     if not command:
         state["error"] = "No command to execute"
         return state
-    
+
     print(f" Executing: {command}")
-    
+
     # Handle special cases
     if task_type == "cd":
         return _handle_cd_command(state, command, cwd)
-    
+
     # Safety check for dangerous commands
     if risk_level == "dangerous":
         if not _confirm_dangerous_command(command):
             state["error"] = "Command execution cancelled by user"
             return state
-    
-    # Check if this is a multi-line command
+
+    # Pre-sniff file to be deleted (before it disappears)
+    cmd_lower = command.lower()
+    is_delete = any(k in cmd_lower for k in ("git rm", "remove-item", "del ", "rm "))
+    deleted_file, deleted_content = (None, None)
+    if is_delete:
+        deleted_file, deleted_content = _sniff_deleted_file(command, cwd)
+
+    # Execute
     if '\n' in command.strip():
-        return _execute_multiline_command(state, command, cwd)
+        result_state = _execute_multiline_command(state, command, cwd)
     else:
-        return _execute_single_command(state, command, cwd)
+        result_state = _execute_single_command(state, command, cwd)
+
+    # Post-execution history recording
+    if result_state.get("return_code") == 0:
+        if "git commit" in cmd_lower or "git push" in cmd_lower:
+            _record("git_commit", command, cwd,
+                    label=state.get("generated_commit_msg") or "git commit")
+        elif is_delete and deleted_file:
+            _record("file_delete", command, cwd,
+                    filename=deleted_file, content_before=deleted_content,
+                    label=f"delete '{deleted_file}'")
+        else:
+            _record("shell_command", command, cwd)
+
+    return result_state
 
 def _execute_single_command(state, command, cwd):
     """Execute a single command"""
